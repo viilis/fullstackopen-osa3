@@ -31,13 +31,23 @@ const DateAndLength = () => {
         <p>${new Date()}</p>
     </div>`)
 }
-
+//ROUTES
 app.get('/api/persons', (req,res) => {
     res.json(phonebook.persons)
 })
 
 app.get('/info', (req,res) => {
     res.send(DateAndLength())
+})
+
+app.get('/api/persons/:id',  (req,res) =>{
+    const id = req.params.id
+    const person = phonebook.persons.find(p=> p.id == id)
+    if(person){
+        res.json(person)
+    } else {
+        res.status(404).end()
+    }
 })
 
 const PORT = 3001
