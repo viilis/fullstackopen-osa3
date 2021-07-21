@@ -1,6 +1,8 @@
 const express = require('express')
 const app = express()
 
+app.use(express.json())
+
 let phonebook = {
     "persons": [
       {
@@ -31,6 +33,11 @@ const DateAndLength = () => {
         <p>${new Date()}</p>
     </div>`)
 }
+const randomNumber = (min,max) =>{
+    min = Math.ceil(min)
+    max = Math.floor(max)
+    return Math.floor(Math.random() * (max - min) + min)
+}
 //ROUTES
 app.get('/api/persons', (req,res) => {
     res.json(phonebook.persons)
@@ -48,6 +55,17 @@ app.get('/api/persons/:id',  (req,res) =>{
     } else {
         res.status(404).end()
     }
+})
+
+app.post('/api/persons', (req,res) => {
+    const min = phonebook.persons.length
+    const max = 99999 // iso numero :)
+    const randomID = randomNumber(min,max)
+    let body = req.body
+    body = {...body, "id":randomID}
+    phonebook.persons.push(body)
+    res.json(phonebook.persons)
+
 })
 
 app.delete('/api/persons/:id', (req,res) =>{
