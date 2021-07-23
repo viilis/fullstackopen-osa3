@@ -27,17 +27,20 @@ let phonebook = {
       }
     ]
   }
+
 const DateAndLength = () => {
     return(`<div>
         <p>Phonebook has info for ${phonebook.persons.length}</p>
         <p>${new Date()}</p>
     </div>`)
 }
+
 const randomNumber = (min,max) =>{
     min = Math.ceil(min)
     max = Math.floor(max)
     return Math.floor(Math.random() * (max - min) + min)
 }
+
 //ROUTES
 app.get('/api/persons', (req,res) => {
     res.json(phonebook.persons)
@@ -58,6 +61,13 @@ app.get('/api/persons/:id',  (req,res) =>{
 })
 
 app.post('/api/persons', (req,res) => {
+    console.log(req.body.name)
+    if(phonebook.persons.find( p => p.name.toLowerCase() === req.body.name.toLowerCase())){
+        return res.status(400).json({ error: 'name must be unique' })
+    }else if(req.body.name == "" || req.body.number == ""){
+        return res.status(400).json({ error: 'name or number must be included' })
+    }
+    
     const min = phonebook.persons.length
     const max = 99999 // iso numero :)
     const randomID = randomNumber(min,max)
