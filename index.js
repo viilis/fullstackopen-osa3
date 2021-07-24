@@ -1,9 +1,11 @@
 const express = require('express')
-const { token } = require('morgan')
 const morgan = require('morgan')
+const cors = require('cors')
+
 const app = express()
 
 app.use(express.json())
+app.use(cors())
 app.use(morgan( (tokens, req , res) =>{
     morgan.token('body', (req) => {return JSON.stringify(req.body)})
     return [
@@ -74,7 +76,6 @@ app.get('/api/persons/:id',  (req,res) =>{
 })
 
 app.post('/api/persons', (req,res) => {
-    console.log(req.body.name)
     if(phonebook.persons.find( p => p.name.toLowerCase() === req.body.name.toLowerCase())){
         return res.status(400).json({ error: 'name must be unique' })
     }else if(req.body.name == "" || req.body.number == ""){
@@ -82,7 +83,7 @@ app.post('/api/persons', (req,res) => {
     }
     
     const min = phonebook.persons.length
-    const max = 99999 // iso numero :)
+    const max = 99999 // Big number :)
     const randomID = randomNumber(min,max)
     let body = req.body
     body = {...body, "id":randomID}
@@ -92,9 +93,9 @@ app.post('/api/persons', (req,res) => {
 })
 
 app.delete('/api/persons/:id', (req,res) =>{
-    const id = req.params.id
-    if(phonebook.persons.find(p => p.id == id)){
-        phonebook = phonebook.persons.filter(p => p.id !== id)
+    const id = Number(req.params.id)
+    if(phonebook.persons.find(p => p.id === id)){ //why (p => p.id == id) wont work typeof(p.id) is string but still cannot compare String to number with == ???
+        phonebook.persons = phonebook.persons.filter(p => p.id !== id)
         res.status(204).end()
     } else {
         res.status(404).end()
