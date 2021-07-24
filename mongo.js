@@ -18,9 +18,8 @@ if(process.argv.length<=3){
         })
         mongoose.connection.close()
     })
-}
-
-const personname = process.argv[3]
+}else{
+    const personname = process.argv[3]
 const personnumber = process.argv[4]
 
 const person = new Person({
@@ -32,3 +31,4 @@ person.save().then(res => {
     console.log(`added ${personname} number ${personnumber} to phonebook`)
     mongoose.connection.close()
 })
+}
