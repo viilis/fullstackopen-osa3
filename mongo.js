@@ -16,7 +16,7 @@ if(process.argv.length<=3){
         res.forEach(p =>{
             console.log(p)
         })
-        mongoose.connect.close()
+        mongoose.connection.close()
     })
 }
 
