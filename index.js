@@ -1,6 +1,9 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const Person = require('./models/mongo')
+const { Mongoose } = require('mongoose')
 
 const app = express()
 
@@ -19,92 +22,61 @@ app.use(morgan( (tokens, req , res) =>{
     ].join(' ')
 }))
 
-let phonebook = {
-    "persons": [
-      {
-        "name": "Arto Hellas",
-        "number": "040-123456",
-        "id": 1
-      },
-      {
-        "name": "Ada Lovelace",
-        "number": "39-44-5323523",
-        "id": 2
-      },
-      {
-        "name": "Dan Abramov",
-        "number": "12-43-234345",
-        "id": 3
-      },
-      {
-        "name": "Mary Poppendieck",
-        "number": "39-23-6423122",
-        "id": 4
-      }
-    ]
-  }
-
-const DateAndLength = () => {
+/*const DateAndLength = () => {
     return(`<div>
-        <p>Phonebook has info for ${phonebook.persons.length}</p>
+        <p>Person has info for ${Person.persons.length}</p>
         <p>${new Date()}</p>
     </div>`)
-}
-
-const randomNumber = (min,max) =>{
-    min = Math.ceil(min)
-    max = Math.floor(max)
-    return Math.floor(Math.random() * (max - min) + min)
-}
+}*/
 
 //ROUTES
 app.get('/api/persons', (req,res) => {
-    res.json(phonebook.persons)
+    Person.find({}).then(result => {
+        res.json(result)
+    })
 })
 
 app.get('/info', (req,res) => {
     res.send(DateAndLength())
 })
 
-app.get('/api/persons/:id',  (req,res) =>{
-    const id = req.params.id
-    const person = phonebook.persons.find(p=> p.id == id)
-    if(person){
-        res.json(person)
-    } else {
-        res.status(404).end()
-    }
+app.get('/api/persons/:id', (req,res) =>{
+    const person_id = req.params.id
+    Person.findById(person_id).then(result => {
+        if(result){
+            res.json(result)
+        }else{
+            res.status(404).end()
+        }
+    }).catch(error =>{
+        res.status(500).end()
+    })
+
 })
-
+//TODO: Check if database already has name,number or id on it and do proper response for that
 app.post('/api/persons', (req,res) => {
-    if(phonebook.persons.find( p => p.name.toLowerCase() === req.body.name.toLowerCase())){
-        return res.status(400).json({ error: 'name must be unique' })
-    }else if(req.body.name == "" || req.body.number == ""){
-        return res.status(400).json({ error: 'name or number must be included' })
+    if(req.body === undefined){
+        return res.status(400).json({ error: 'content missing' })
     }
-    
-    const min = phonebook.persons.length
-    const max = 99999 // Big number :)
-    const randomID = randomNumber(min,max)
-    let body = req.body
-    body = {...body, "id":randomID}
-    phonebook.persons.push(body)
-    res.json(phonebook.persons)
 
+    const addable = new Person({
+        name:req.body.name,
+        number:req.body.number
+    })
+    addable.save().then(saved =>{
+        res.json(saved)
+    })
 })
 
 app.delete('/api/persons/:id', (req,res) =>{
-    const id = Number(req.params.id)
-    if(phonebook.persons.find(p => p.id === id)){ //why (p => p.id == id) wont work typeof(p.id) is string but still cannot compare String to number with == ???
-        phonebook.persons = phonebook.persons.filter(p => p.id !== id)
-        res.status(204).end()
-    } else {
-        res.status(404).end()
-    }
+    const person_id = req.params.id
 
+    Person.findByIdAndRemove(person_id).then(result => {
+        res.status(204).json(result)
+    })
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT,() =>{
     console.log(`Server running on port ${PORT}`)
 })
