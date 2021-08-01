@@ -7,8 +7,8 @@ const { Mongoose } = require('mongoose')
 
 const app = express()
 
-app.use(express.json())
 app.use(express.static('build'))
+app.use(express.json())
 app.use(cors())
 app.use(morgan( (tokens, req , res) =>{
     morgan.token('body', (req) => {return JSON.stringify(req.body)})
@@ -21,14 +21,12 @@ app.use(morgan( (tokens, req , res) =>{
         tokens.body(req,res)
     ].join(' ')
 }))
-
-/*const DateAndLength = () => {
-    return(`<div>
-        <p>Person has info for ${Person.persons.length}</p>
-        <p>${new Date()}</p>
-    </div>`)
-}*/
-
+let x = 0
+//error handling middleware
+const errorHandler= (error,req,res,next) => {
+    console.log(error.message)
+    next(error)
+}
 //ROUTES
 app.get('/api/persons', (req,res) => {
     Person.find({}).then(result => {
@@ -37,10 +35,14 @@ app.get('/api/persons', (req,res) => {
 })
 
 app.get('/info', (req,res) => {
-    res.send(DateAndLength())
+    Person.find({}).then(r => {
+        x=r.length
+        const response = `<div><p>Phonebook has info ${x}</p><p>${new Date()}</p></div>`
+        res.send(response)
+    })
 })
 
-app.get('/api/persons/:id', (req,res) =>{
+app.get('/api/persons/:id', (req,res,next) =>{
     const person_id = req.params.id
     Person.findById(person_id).then(result => {
         if(result){
@@ -48,17 +50,14 @@ app.get('/api/persons/:id', (req,res) =>{
         }else{
             res.status(404).end()
         }
-    }).catch(error =>{
-        res.status(500).end()
-    })
+    }).catch(error => next(error))
 
 })
-//TODO: Check if database already has name,number or id on it and do proper response for that
+
 app.post('/api/persons', (req,res) => {
     if(req.body === undefined){
         return res.status(400).json({ error: 'content missing' })
     }
-
     const addable = new Person({
         name:req.body.name,
         number:req.body.number
@@ -68,13 +67,21 @@ app.post('/api/persons', (req,res) => {
     })
 })
 
+app.put('/api/persons/:id',(req,res) => {
+    const person_id = req.params.id
+    Person.findByIdAndUpdate(person_id,req.body,{new :true}).then(result =>{
+        res.json(result)
+    })
+})
+
 app.delete('/api/persons/:id', (req,res) =>{
     const person_id = req.params.id
-
     Person.findByIdAndRemove(person_id).then(result => {
         res.status(204).json(result)
     })
 })
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT,() =>{
