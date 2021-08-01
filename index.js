@@ -21,40 +21,47 @@ app.use(morgan( (tokens, req , res) =>{
         tokens.body(req,res)
     ].join(' ')
 }))
-let x = 0
+
+let phonebooklength = 0
 //error handling middleware
 const errorHandler= (error,req,res,next) => {
     console.log(error.message)
+
+    if(error.name ==='CastError'){
+        return res.status(400).send({ error: 'malformatted id' })
+    } else if(error.name === 'ValidationError'){
+        return res.status(400).json({ error: error.message })
+    }
+
     next(error)
 }
 //ROUTES
 app.get('/api/persons', (req,res) => {
-    Person.find({}).then(result => {
-        res.json(result)
-    })
+    Person.find({}).then(result => res.json(result))
 })
 
 app.get('/info', (req,res) => {
     Person.find({}).then(r => {
-        x=r.length
-        const response = `<div><p>Phonebook has info ${x}</p><p>${new Date()}</p></div>`
+        phonebooklength=r.length
+        const response = `<div><p>Phonebook has info ${phonebooklength}</p><p>${new Date()}</p></div>`
         res.send(response)
     })
 })
 
 app.get('/api/persons/:id', (req,res,next) =>{
     const person_id = req.params.id
-    Person.findById(person_id).then(result => {
+    Person.findById(person_id)
+    .then(result => {
         if(result){
             res.json(result)
         }else{
             res.status(404).end()
         }
-    }).catch(error => next(error))
-
+    })
+    .catch(error => next(error))
 })
 
-app.post('/api/persons', (req,res) => {
+app.post('/api/persons', (req,res,next) => {
     if(req.body === undefined){
         return res.status(400).json({ error: 'content missing' })
     }
@@ -62,23 +69,24 @@ app.post('/api/persons', (req,res) => {
         name:req.body.name,
         number:req.body.number
     })
-    addable.save().then(saved =>{
-        res.json(saved)
-    })
+    addable.save()
+    .then(saved => res.json(saved))
+    .catch(error => next(error))
 })
 
-app.put('/api/persons/:id',(req,res) => {
+app.put('/api/persons/:id',(req,res,next) => {
     const person_id = req.params.id
-    Person.findByIdAndUpdate(person_id,req.body,{new :true}).then(result =>{
-        res.json(result)
-    })
+    Person.findByIdAndUpdate(person_id,req.body,{new :true, runValidators: true})
+    .then(result => res.json(result))
+    .catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (req,res) =>{
+app.delete('/api/persons/:id', (req,res,next) =>{
     const person_id = req.params.id
-    Person.findByIdAndRemove(person_id).then(result => {
-        res.status(204).json(result)
-    })
+    Person.findByIdAndRemove(person_id)
+    .then(result => res.status(204).json(result))
+    .catch(error => next(error))
+
 })
 
 app.use(errorHandler)
