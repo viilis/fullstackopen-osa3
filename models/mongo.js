@@ -15,13 +15,13 @@ const personSchema = new mongoose.Schema({
     id:Number,
     name:{
         type: String,
-        minlength: 2,
+        minlength: 3,
         required: [true,'name is required'],
         unique: true
     },
     number:{
         type: String,
-        minlength: 5,
+        minlength: 8,
         required: [true,'number is required'],
         unique: true
     }

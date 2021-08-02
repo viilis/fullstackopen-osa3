@@ -8,7 +8,7 @@ const { Mongoose } = require('mongoose')
 const app = express()
 
 //for using static build version
-//app.use(express.static('build'))
+app.use(express.static('build'))
 app.use(express.json())
 app.use(cors())
 app.use(morgan( (tokens, req , res) =>{
