@@ -7,7 +7,8 @@ const { Mongoose } = require('mongoose')
 
 const app = express()
 
-app.use(express.static('build'))
+//for using static build version
+//app.use(express.static('build'))
 app.use(express.json())
 app.use(cors())
 app.use(morgan( (tokens, req , res) =>{
@@ -22,7 +23,6 @@ app.use(morgan( (tokens, req , res) =>{
     ].join(' ')
 }))
 
-let phonebooklength = 0
 //error handling middleware
 const errorHandler= (error,req,res,next) => {
     console.log(error.message)
@@ -39,7 +39,7 @@ const errorHandler= (error,req,res,next) => {
 app.get('/api/persons', (req,res) => {
     Person.find({}).then(result => res.json(result))
 })
-
+let phonebooklength = 0
 app.get('/info', (req,res) => {
     Person.find({}).then(r => {
         phonebooklength=r.length
