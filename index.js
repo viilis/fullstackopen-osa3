@@ -29,10 +29,10 @@ const errorHandler= (error,req,res,next) => {
 
     if(error.name ==='CastError'){
         return res.status(400).send({ error: 'malformatted id' })
-    } else if(error.name === 'ValidationError'){
+    }
+    else if(error.name === 'ValidationError'){
         return res.status(400).json({ error: error.message })
     }
-
     next(error)
 }
 //ROUTES
@@ -76,7 +76,7 @@ app.post('/api/persons', (req,res,next) => {
 
 app.put('/api/persons/:id',(req,res,next) => {
     const person_id = req.params.id
-    Person.findByIdAndUpdate(person_id,req.body,{new :true, runValidators: true})
+    Person.findByIdAndUpdate(person_id,req.body,{new :true, runValidators: true, context: 'query'})
     .then(result => res.json(result))
     .catch(error => next(error))
 })
